@@ -149,7 +149,6 @@ function runWorker() {
   function sendMessage() {
     if (i < inputArray.length) {
       const input = inputArray[i];
-      console.log(`message #${i+1}: sending a message with input ${input}`);
       // Send a message to the worker
       worker.postMessage({
         no: i+1,
@@ -182,28 +181,15 @@ function runTask(duration) {
 }
 
 onmessage = function runLongTaskOnWorker(e) {
-  const processingStartOnWorker = e.timeStamp; // Time when onmessage handler starts
-  const taskSimulationStartTime = performance.now();
+  const processingStart = e.timeStamp; // Time when onmessage handler starts
+  const taskStartTime = performance.now();
   
   runTask(e.data.input); // Simulate the work
   
-  const taskSimulationDuration = performance.now() - taskSimulationStartTime;
-
+  const taskDuration = performance.now() - taskStartTime;
   // Calculate timings relative to worker's performance.timeOrigin
-  const startTimeFromMain = e.data.startTime - performance.timeOrigin;
-  const messageQueueWaitTime = processingStartOnWorker - startTimeFromMain;
-
-  console.log(`message #${e.data.no}: original postMessage call at ${startTimeFromMain.toFixed(2)} ms (relative to worker origin)`);
-  console.log(`message #${e.data.no}: started processing in worker at ${processingStartOnWorker.toFixed(2)} ms`);
-  console.log(
-    `message #${e.data.no}: ran a task for input (${e.data.input}ms), actual duration: ${taskSimulationDuration.toFixed(2)}ms`
-  );
-  console.log(
-    `message #${e.data.no}: total time from postMessage to task end: ` +
-    `task duration (${taskSimulationDuration.toFixed(2)}) + ` +
-    `message queue wait time etc. (${messageQueueWaitTime.toFixed(2)}) = ` +
-    `${(taskSimulationDuration + messageQueueWaitTime).toFixed(2)} ms (approx)`
-  );
+  const startTime = e.data.startTime - performance.timeOrigin;
+  const blockedDuration = processingStart - startTime;
 };
 ```
 
