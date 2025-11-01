@@ -110,7 +110,7 @@ These problems can be broadly categorized into three areas:
 
 The following sections will analyze each area with examples. All examples involve web workers, but similar situations can also occur between the main window and iframes, or between different windows.
 
-## Case 1: Thread Being Occupied
+## Case 1: Thread Occupation
 
 The following example code demonstrates how a long-running task on a worker thread can block subsequent messages in its message queue.
 
@@ -368,7 +368,7 @@ In this scenario, the worker processes 10 `deleteMail` tasks, each taking 50ms, 
 
 While delays in background tasks like `deleteMail` might be acceptable, delays in user-initiated, high-priority tasks like `readMail` severely impact user experience. It's important for developers to identify if a browser context or worker is congested and which tasks contribute most to this congestion.
 
-## Case 3: Serialization/Deserialization Time
+## Case 3: Serialization/Deserialization Overhead
 
 When data is sent using `postMessage`, it undergoes serialization by the sender and deserialization by the receiver. For large or complex JavaScript objects (e.g., a large JSON payload or a deeply nested object), these processes can consume considerable time, blocking the respective threads.
 
