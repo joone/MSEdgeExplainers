@@ -29,24 +29,24 @@ Author: [Joone Hur](https://github.com/joone)
     - [Console logs](#console-logs)
     - [Summary of Problems](#summary-of-problems)
 - [Proposal: Introducing the Delayed Messages API](#proposal-introducing-the-delayed-messages-api)
-  - [`PerformanceDelayMessageTiming` Interface](#performancedelaymessagetiming-interface)
+  - [`PerformanceDelayedMessageTiming` Interface](#PerformanceDelayedMessageTiming-interface)
     - [`postMessage` Timestamps and Durations:](#postmessage-timestamps-and-durations)
     - [Instance Properties](#instance-properties)
       - [`PerformanceEntry.entryType`](#performanceentryentrytype)
       - [`PerformanceEntry.name`](#performanceentryname)
       - [`PerformanceEntry.startTime`](#performanceentrystarttime)
       - [`PerformanceEntry.duration`](#performanceentryduration)
-      - [`PerformanceDelayMessageTiming.sentTime`](#performancedelaymessagetimingsenttime)
-      - [`PerformanceDelayMessageTiming.processingStart`](#performancedelaymessagetimingprocessingstart)
-      - [`PerformanceDelayMessageTiming.processingEnd`](#performancedelaymessagetimingprocessingend)
-      - [`PerformanceDelayMessageTiming.blockedDuration`](#performancedelaymessagetimingblockedduration)
-      - [`PerformanceDelayMessageTiming.serialization`](#performancedelaymessagetimingserialization)
-      - [`PerformanceDelayMessageTiming.deserialization`](#performancedelaymessagetimingdeserialization)
-      - [`PerformanceDelayMessageTiming.messageType`](#performancedelaymessagetimingmessagetype)
-      - [`PerformanceDelayMessageTiming.traceId`](#performancedelaymessagetimingtraceid)
-      - [`PerformanceDelayMessageTiming.invoker`](#performancedelaymessagetiminginvoker)
-      - [`PerformanceDelayMessageTiming.receiver`](#performancedelaymessagetimingreceiver)
-      - [`PerformanceDelayMessageTiming.scripts`](#performancedelaymessagetimingscripts)
+      - [`PerformanceDelayedMessageTiming.sentTime`](#PerformanceDelayedMessageTimingsenttime)
+      - [`PerformanceDelayedMessageTiming.processingStart`](#PerformanceDelayedMessageTimingprocessingstart)
+      - [`PerformanceDelayedMessageTiming.processingEnd`](#PerformanceDelayedMessageTimingprocessingend)
+      - [`PerformanceDelayedMessageTiming.blockedDuration`](#PerformanceDelayedMessageTimingblockedduration)
+      - [`PerformanceDelayedMessageTiming.serialization`](#PerformanceDelayedMessageTimingserialization)
+      - [`PerformanceDelayedMessageTiming.deserialization`](#PerformanceDelayedMessageTimingdeserialization)
+      - [`PerformanceDelayedMessageTiming.messageType`](#PerformanceDelayedMessageTimingmessagetype)
+      - [`PerformanceDelayedMessageTiming.traceId`](#PerformanceDelayedMessageTimingtraceid)
+      - [`PerformanceDelayedMessageTiming.invoker`](#PerformanceDelayedMessageTiminginvoker)
+      - [`PerformanceDelayedMessageTiming.receiver`](#PerformanceDelayedMessageTimingreceiver)
+      - [`PerformanceDelayedMessageTiming.scripts`](#PerformanceDelayedMessageTimingscripts)
   - [`PerformanceMessageScriptInfo` Interface](#performancemessagescriptinfo-interface)
     - [Instance Properties](#instance-properties-1)
       - [`PerformanceMessageScriptInfo.name`](#performancemessagescriptinfoname)
@@ -413,8 +413,6 @@ function generateLargeJSON(size) {
 // Send a large JSON object to the worker
 function sendLargeJSON() {
   const largeJSON = generateLargeJSON(7000);
-  console.log("[main] Dispatching a large JSON object to the worker.");
-
   const startTime = performance.now();
   worker.postMessage({
     receivedData: largeJSON,
@@ -467,7 +465,6 @@ onmessage = (event) => {
 
 ### Console logs
 ```
-[main] Dispatching a large JSON object to the worker.
 [main] Serialization(estimate): 130.30 ms
 [worker] Deserialized Data:  7000 items.
 [worker] Deserialization:  114.30 ms
@@ -485,14 +482,14 @@ Message delays frequently occur and can degrade user experience. While existing 
 
 # Proposal: Introducing the Delayed Messages API
 
-The Delayed Messages API introduces the `PerformanceDelayMessageTiming` interface, delivered via the PerformanceObserver API. This interface allows developers to identify browser contexts or workers where `postMessage` events are significantly delayed in the message queue. It also provides detailed breakdowns of the event's lifecycle, including information about the invoker, receiver, and blocking scripts.
+The Delayed Messages API introduces the `PerformanceDelayedMessageTiming` interface, delivered via the PerformanceObserver API. This interface allows developers to identify browser contexts or workers where `postMessage` events are significantly delayed in the message queue. It also provides detailed breakdowns of the event's lifecycle, including information about the invoker, receiver, and blocking scripts.
 
 This new interface relies on two supporting interfaces:
 
   * `PerformanceMessageScriptInfo`: Provides details about the script that sent or received the message.
   * `PerformanceExecutionContextInfo`: Describes the execution context (e.g., main thread, worker) of the sender or receiver.
 
-## `PerformanceDelayMessageTiming` Interface
+## `PerformanceDelayedMessageTiming` Interface
 
 This interface provides end-to-end timing for a `postMessage` event.
 The following diagram illustrates the key timestamps:
@@ -512,7 +509,7 @@ This interface is available in both browser contexts and web workers, providing 
 
 ### Instance Properties
 
-This interface extends `PerformanceEntry`. The following properties are specific to or have special meaning for `PerformanceDelayMessageTiming` entries:
+This interface extends `PerformanceEntry`. The following properties are specific to or have special meaning for `PerformanceDelayedMessageTiming` entries:
 
 #### `PerformanceEntry.entryType`
 
@@ -531,38 +528,38 @@ worker.postMessage({ query: 'find a user' }, { name: 'userSearchQuery' });
 
 #### `PerformanceEntry.startTime`
 
-Returns a `DOMHighResTimeStamp` representing the time when the `postMessage` was executed in the sending context. The timestamp is relative to the `timeOrigin` of the context where the `PerformanceDelayMessageTiming` entry is observed.
+Returns a `DOMHighResTimeStamp` representing the time when the `postMessage` was executed in the sending context. The timestamp is relative to the `timeOrigin` of the context where the `PerformanceDelayedMessageTiming` entry is observed.
 *Note for developers:* When an entry is observed in a worker for a message sent from the main window (or vice-versa), `startTime` reflects the sender's clock, adjusted to the observer's `timeOrigin`. This means `startTime` can sometimes be a negative value if the sending context was initialized earlier than the observing context. The relative durations provided by the API remain accurate.
 
 #### `PerformanceEntry.duration`
 
 Returns a `DOMHighResTimeStamp` representing the total time from `startTime` to `processingEnd`.
 
-#### `PerformanceDelayMessageTiming.sentTime`
+#### `PerformanceDelayedMessageTiming.sentTime`
 
 Returns a `DOMHighResTimeStamp` representing the time when the message was added to the message queue of the receiving browser context or worker.
 
-#### `PerformanceDelayMessageTiming.processingStart`
+#### `PerformanceDelayedMessageTiming.processingStart`
 
 Returns a `DOMHighResTimeStamp` representing the time when the event dispatch started (i.e., the `onmessage` handler is about to be executed in the receiving execution context).
 
-#### `PerformanceDelayMessageTiming.processingEnd`
+#### `PerformanceDelayedMessageTiming.processingEnd`
 
 Returns a `DOMHighResTimeStamp` representing the time when the event dispatch ended (i.e., the `onmessage` handler completed in the receiving execution context).
 
-#### `PerformanceDelayMessageTiming.blockedDuration`
+#### `PerformanceDelayedMessageTiming.blockedDuration`
 
 Returns a `DOMHighResTimeStamp` representing the duration a dispatched `postMessage` waited in the message queue of the receiving context *after* `sentTime` and *before* `processingStart`. It is calculated as `processingStart - sentTime`.
 
-#### `PerformanceDelayMessageTiming.serialization`
+#### `PerformanceDelayedMessageTiming.serialization`
 
 Returns a `DOMHighResTimeStamp` representing the duration taken by the sending context to serialize the data attached to the message.
 
-#### `PerformanceDelayMessageTiming.deserialization`
+#### `PerformanceDelayedMessageTiming.deserialization`
 
 Returns a `DOMHighResTimeStamp` representing the duration taken by the receiving context to deserialize the attached data from the message. This occurs before `processingStart`.
 
-#### `PerformanceDelayMessageTiming.messageType`
+#### `PerformanceDelayedMessageTiming.messageType`
 
 Returns a string indicating the type of `postMessage` communication. Possible values:
 
@@ -571,19 +568,19 @@ Returns a string indicating the type of `postMessage` communication. Possible va
   * `"cross-document"` (between windows/iframes using `window.postMessage`)
   * `"broadcast-channel"` (via a `BroadcastChannel`)
 
-#### `PerformanceDelayMessageTiming.traceId`
+#### `PerformanceDelayedMessageTiming.traceId`
 
 Returns a unique identifier (e.g., an incrementing number) for the message. This can help correlate logs or entries if necessary, especially if messages are sent back and forth.
 
-#### `PerformanceDelayMessageTiming.invoker`
+#### `PerformanceDelayedMessageTiming.invoker`
 
 Returns a `PerformanceMessageScriptInfo` instance providing details about the script that sent the message.
 
-#### `PerformanceDelayMessageTiming.receiver`
+#### `PerformanceDelayedMessageTiming.receiver`
 
 Returns a `PerformanceMessageScriptInfo` instance providing details about the script that handled (or is handling) the message.
 
-#### `PerformanceDelayMessageTiming.scripts`
+#### `PerformanceDelayedMessageTiming.scripts`
 
 Returns an array of `PerformanceScriptTiming` instances. These represent the long tasks that were executing on the receiver's thread between `sentTime` and `processingStart`, thus contributing to `blockedDuration`. This leverages the same mechanism as the [Long Animation Frames API](https://developer.mozilla.org/en-US/docs/Web/API/PerformanceLongAnimationFrameTiming/scripts).
 
@@ -806,7 +803,7 @@ A native API can provide more accurate and comprehensive data with lower overhea
 
 This API is designed to provide developers with insights into the performance of their own applications and does not introduce new cross-origin information leakage.
 
-  * **Same-Origin Data:** `PerformanceDelayMessageTiming` entries are only exposed to the same origin that initiated and received the messages. Information about message timings between `A.com` and an iframe from `B.com` would only be available to `A.com` if it can observe the receiver in `B.com` (which generally requires `B.com` to cooperate) or vice-versa, subject to standard cross-origin policies. The `scripts` property, which details blocking tasks, also only contains information about same-origin scripts.
+  * **Same-Origin Data:** `PerformanceDelayedMessageTiming` entries are only exposed to the same origin that initiated and received the messages. Information about message timings between `A.com` and an iframe from `B.com` would only be available to `A.com` if it can observe the receiver in `B.com` (which generally requires `B.com` to cooperate) or vice-versa, subject to standard cross-origin policies. The `scripts` property, which details blocking tasks, also only contains information about same-origin scripts.
   * **No New Cross-Origin Information:** The API does not expose any new information about cross-origin interactions that isn't already observable through other means (e.g., whether a message was sent or received). Details of cross-origin execution contexts or script contents are not revealed.
   * **Fingerprinting:** The risk of this API being used for user fingerprinting is considered low.
       * The information provided is about the performance characteristics of the web application itself, not the user's underlying system hardware beyond what influences JavaScript execution speed.
