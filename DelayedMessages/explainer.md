@@ -78,11 +78,11 @@ Author: [Joone Hur](https://github.com/joone)
 
 # Overview
 
-Web applications frequently use `postMessage` to send messages across different execution contexts, such as between windows, iframes, and web workers. However, message delays happen when messages are queued but not processed promptly, often because the event loop in the receiving context is occupied with long-running tasks or the message queue itself becomes congested due to a high volume of messages.
+Web applications frequently use the `postMessage` API for communication across different execution contexts, such as between windows, iframes, and web workers. However, message delays often occur when messages are queued but not processed promptly.
 
-Such delays can degrade user experience by making applications feel unresponsive. Identifying the root cause of these delays—whether it's a busy thread, a congested message queue, or the overhead of preparing message data—is currently challenging for web developers.
+These delays can degrade the user experience by making applications feel unresponsive. While developers can detect that a delay happened, identifying the specific cause—whether it's a busy thread, a congested message queue, or serialization/deserialization overhead—is challenging with current tools.
 
-The Delayed Messages API allows web developers to identify congested browser contexts or workers and provide details on the end-to-end timing of `postMessage` events, as well as their related blocking tasks. These metrics help identify the causes of `postMessage` delays and improve application performance.
+The Delayed Messages API will provide developers with end-to-end timing metrics and details on blocking tasks, allowing them to pinpoint the root causes of these delays and improve application performance.
 
 # Goals
 
