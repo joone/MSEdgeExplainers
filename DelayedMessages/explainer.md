@@ -530,7 +530,7 @@ Returns the total number of queued tasks blocking the postMessage event.
 Returns the total number of all entry-point JavaScript tasks, including those with a duration les than 5ms.
 
 #### `PerformanceDelayedMessageTiming.totalScriptDuration`
-Returns the cumulative duration (in milliseconds) of all script entries listed in the scripts property.
+Returns the cumulative duration (in milliseconds) of all scripts included in scriptTaskCount.
 
 #### `PerformanceDelayedMessageTiming.messageType`
 
@@ -666,7 +666,7 @@ By examining `blockedDuration` and the handler execution time (`processingEnd - 
       "deserializeDuration": 0,
       "taskCount": 13,
       "scriptTaskCount": 1,
-      "totalScriptDuration": 0,
+      "totalScriptDuration": 2,
       "scripts": [],
       "invoker": {
           "name": "invoker",
@@ -710,7 +710,7 @@ By examining `blockedDuration` and the handler execution time (`processingEnd - 
       "deserializeDuration": 0,
       "taskCount": 27,
       "scriptTaskCount": 2,
-      "totalScriptDuration": 121,
+      "totalScriptDuration": 123,
       "scripts": [
           {
               "name": "script",
