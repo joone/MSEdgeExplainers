@@ -14,7 +14,7 @@ Author: [Joone Hur](https://github.com/joone)
 - [Goals](#goals)
 - [Non-goals](#non-goals)
 - [Problems](#problems)
-  - [Case 1: Thread Being Occupied](#case-1-thread-being-occupied)
+  - [Case 1: Thread Occupation](#case-1-thread-occupation)
     - [index.html](#indexhtml)
     - [main.js](#mainjs)
     - [worker.js](#workerjs)
@@ -22,31 +22,34 @@ Author: [Joone Hur](https://github.com/joone)
     - [index.html](#indexhtml-1)
     - [main.js](#mainjs-1)
     - [worker.js](#workerjs-1)
-  - [Case 3: Serialization/Deserialization Time](#case-3-serializationdeserialization-time)
+  - [Case 3: Serialization/Deserialization Overhead](#case-3-serializationdeserialization-overhead)
     - [index.html](#indexhtml-2)
     - [main.js](#mainjs-2)
     - [worker.js](#workerjs-2)
     - [Console logs](#console-logs)
     - [Summary of Problems](#summary-of-problems)
 - [Proposal: Introducing the Delayed Messages API](#proposal-introducing-the-delayed-messages-api)
-  - [`PerformanceDelayedMessageTiming` Interface](#PerformanceDelayedMessageTiming-interface)
+  - [`PerformanceDelayedMessageTiming` Interface](#performancedelayedmessagetiming-interface)
     - [`postMessage` Timestamps and Durations:](#postmessage-timestamps-and-durations)
     - [Instance Properties](#instance-properties)
       - [`PerformanceEntry.entryType`](#performanceentryentrytype)
       - [`PerformanceEntry.name`](#performanceentryname)
       - [`PerformanceEntry.startTime`](#performanceentrystarttime)
       - [`PerformanceEntry.duration`](#performanceentryduration)
-      - [`PerformanceDelayedMessageTiming.sentTime`](#PerformanceDelayedMessageTimingsenttime)
-      - [`PerformanceDelayedMessageTiming.processingStart`](#PerformanceDelayedMessageTimingprocessingstart)
-      - [`PerformanceDelayedMessageTiming.processingEnd`](#PerformanceDelayedMessageTimingprocessingend)
-      - [`PerformanceDelayedMessageTiming.blockedDuration`](#PerformanceDelayedMessageTimingblockedduration)
-      - [`PerformanceDelayedMessageTiming.serialization`](#PerformanceDelayedMessageTimingserialization)
-      - [`PerformanceDelayedMessageTiming.deserialization`](#PerformanceDelayedMessageTimingdeserialization)
-      - [`PerformanceDelayedMessageTiming.messageType`](#PerformanceDelayedMessageTimingmessagetype)
-      - [`PerformanceDelayedMessageTiming.traceId`](#PerformanceDelayedMessageTimingtraceid)
-      - [`PerformanceDelayedMessageTiming.invoker`](#PerformanceDelayedMessageTiminginvoker)
-      - [`PerformanceDelayedMessageTiming.receiver`](#PerformanceDelayedMessageTimingreceiver)
-      - [`PerformanceDelayedMessageTiming.scripts`](#PerformanceDelayedMessageTimingscripts)
+      - [`PerformanceDelayedMessageTiming.sentTime`](#performancedelayedmessagetimingsenttime)
+      - [`PerformanceDelayedMessageTiming.processingStart`](#performancedelayedmessagetimingprocessingstart)
+      - [`PerformanceDelayedMessageTiming.processingEnd`](#performancedelayedmessagetimingprocessingend)
+      - [`PerformanceDelayedMessageTiming.blockedDuration`](#performancedelayedmessagetimingblockedduration)
+      - [`PerformanceDelayedMessageTiming.serialization`](#performancedelayedmessagetimingserialization)
+      - [`PerformanceDelayedMessageTiming.deserialization`](#performancedelayedmessagetimingdeserialization)
+      - [`PerformanceDelayedMessageTiming.taskCount`](#performancedelayedmessagetimingtaskcount)
+      - [`PerformanceDelayedMessageTiming.scriptTaskCount`](#performancedelayedmessagetimingscripttaskcount)
+      - [`PerformanceDelayedMessageTiming.totalScriptDuration`](#performancedelayedmessagetimingtotalscriptduration)
+      - [`PerformanceDelayedMessageTiming.messageType`](#performancedelayedmessagetimingmessagetype)
+      - [`PerformanceDelayedMessageTiming.traceId`](#performancedelayedmessagetimingtraceid)
+      - [`PerformanceDelayedMessageTiming.invoker`](#performancedelayedmessagetiminginvoker)
+      - [`PerformanceDelayedMessageTiming.receiver`](#performancedelayedmessagetimingreceiver)
+      - [`PerformanceDelayedMessageTiming.scripts`](#performancedelayedmessagetimingscripts)
   - [`PerformanceMessageScriptInfo` Interface](#performancemessagescriptinfo-interface)
     - [Instance Properties](#instance-properties-1)
       - [`PerformanceMessageScriptInfo.name`](#performancemessagescriptinfoname)
@@ -520,13 +523,13 @@ Returns a `DOMHighResTimeStamp` representing the duration taken by the sending c
 
 Returns a `DOMHighResTimeStamp` representing the duration taken by the receiving context to deserialize the attached data from the message. This occurs before `processingStart`.
 
-### `PerformanceDelayedMessageTiming.taskCount`
+#### `PerformanceDelayedMessageTiming.taskCount`
 Returns the total number of queued tasks blocking the postMessage event.
 
-### `PerformanceDelayedMessageTiming.scriptTaskCount`
+#### `PerformanceDelayedMessageTiming.scriptTaskCount`
 Returns the total number of all entry-point JavaScript tasks, including those with a duration les than 5ms.
 
-### `PerformanceDelayedMessageTiming.totalScriptDuration`
+#### `PerformanceDelayedMessageTiming.totalScriptDuration`
 Returns the cumulative duration (in milliseconds) of all script entries listed in the scripts property.
 
 #### `PerformanceDelayedMessageTiming.messageType`
