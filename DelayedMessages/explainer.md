@@ -85,7 +85,7 @@ Web applications frequently use the `postMessage` API for communication across d
 
 These delays can degrade the user experience by making applications feel unresponsive. While developers can detect that a delay happened, identifying the specific cause—whether it's a busy thread, a congested task queue, or serialization/deserialization overhead—is challenging with current tools.
 
-The Delayed Message Timing API will provide developers with end-to-end timing metrics and details on blocking tasks, allowing them to pinpoint the root causes of these delays and improve application performance.
+The Delayed Message Timing API is a proposed Web Performance API that enables developers to diagnose delays in postMessage communication across windows, iframes, and web workers. By exposing end-to-end timing and attribution data including queue wait time, serialization/deserialization cost, and blocking tasks, this API helps identify bottlenecks that degrade responsiveness in complex web applications.
 
 # Goals
 
