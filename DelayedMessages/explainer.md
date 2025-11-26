@@ -809,7 +809,7 @@ Further discussion is needed to determine the minimum allowed value for this thr
     This article explains how serialization and deserialization are major sources of delay in `postMessage` usage. While `SharedArrayBuffer` can, in theory, eliminate copying overhead by enabling shared memory, its real-world usage is limited due to strict security constraints and the added complexity of manual memory management and thread synchronization.
 
 # Acknowledgements
-Thank you to Abhishek Shanthkumar, Alex Russell, Andy Luhrs, Dave Meyers, Ethan Bernstein, Evan Stade, Jared Mitchell, Luis Pardo, Noam Helfman, Sam Fortiner, Samuele Carpineti, Steve Becker, Yehor Lvivski for their valuable feedback and input.
+Thank you to Abhishek Shanthkumar, Alex Russell, Andy Luhrs, Dave Meyers, Ethan Bernstein, Evan Stade, Jared Mitchell, Luis Pardo, Michal Mocny, Noam Helfman, Noam Rosenthal, Sam Fortiner, Samuele Carpineti, Steve Becker, Yoav Weiss, Yehor Lvivski for their valuable feedback and advice.
 
 # References
 - [Event Timing API](https://w3c.github.io/event-timing/)
