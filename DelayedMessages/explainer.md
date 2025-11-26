@@ -330,9 +330,9 @@ While delays in background tasks like `deleteMail` might be acceptable, delays i
 
 ## Case 3: Serialization/Deserialization Overhead
 
-When data is sent using `postMessage`, it undergoes serialization by the sender and deserialization by the receiver. For large or complex JavaScript objects (e.g., a large JSON payload or a deeply nested object), these processes can consume considerable time, blocking the respective threads.
+When data is sent using `postMessage()`, it undergoes serialization by the sender and deserialization by the receiver. For large or complex JavaScript objects (e.g., a large JSON payload or a deeply nested object), these processes can consume considerable time, blocking the respective threads.
 
-The following example code demonstrate the delay introduced by serializing/deserializing a large JSON object during `postMessage`.
+The following example code demonstrate the delay introduced by serializing/deserializing a large JSON object during `postMessage()`.
 
 [Link to live demo](https://joone.github.io/web/explainers/delayed_messages/serialization/)
 
@@ -355,7 +355,7 @@ The following example code demonstrate the delay introduced by serializing/deser
 
 ### main.js
 
-In the main.js file, 7000 JSON objects are sent to the worker using `postMessage`. The duration of serialization can be measured by calling the `performance.now()` before and after executing `postMessage`.
+In the main.js file, 7000 JSON objects are sent to the worker using `postMessage()`. The duration of serialization can be measured by calling the `performance.now()` before and after executing `postMessage()`.
 
 ```js
 const worker = new Worker("worker.js");
@@ -434,9 +434,9 @@ onmessage = (event) => {
 [worker] blockedDuration (including serialization): 111.10 ms
 [worker] serialization + deserialization (estimate): 566.00 ms
 ```
-As shown, serialization on the main thread (approx. 111.20 ms) occurs synchronously during the `postMessage` call, blocking other main thread work. Similarly, deserialization on the worker thread (approx. 454.40 ms) is a significant operation that blocks the worker's event loop during message processing, delaying the execution of the `onmessage` handler and any subsequent tasks.
+As shown, serialization on the main thread (approx. 111.20 ms) occurs synchronously during the `postMessage()` call, blocking other main thread work. Similarly, deserialization on the worker thread (approx. 454.40 ms) is a significant operation that blocks the worker's event loop during message processing, delaying the execution of the `onmessage` handler and any subsequent tasks.
 
-In this example, the worker log `blockedDuration: 111.10 ms` indicates the time elapsed from when the main thread initiated the `postMessage` (including its 111.20 ms serialization block) to when the worker's `onmessage` handler began execution. This suggests that the task queue wait time is nearly zero, and the delay is primarily caused by serialization on the sender side. However, the cost of data handling is difficult to estimate because the size of the message payload can vary depending on the scenario.
+In this example, the worker log `blockedDuration: 111.10 ms` indicates the time elapsed from when the main thread initiated the `postMessage()` (including its 111.20 ms serialization block) to when the worker's `onmessage` handler began execution. This suggests that the task queue wait time is nearly zero, and the delay is primarily caused by serialization on the sender side. However, the cost of data handling is difficult to estimate because the size of the message payload can vary depending on the scenario.
 
 Another issus is that the timing of deserialization, which the [specification](https://html.spec.whatwg.org/multipage/web-messaging.html#dom-window-postmessage-options-dev) suggests should occur before the message event, can vary across browsers. For example, browsers like Chromium may delay this process until the message data is actually accessed for the first time. This inconsistency, combined with a busy event loop that makes it difficult to distinguish serialization, actual queueing, deserialization, and task execution delays even with manual instrumentation, further underscores the need for an API to expose this timing information.
 
@@ -770,7 +770,7 @@ The proposed API offers structured timing data suitable for production monitorin
 
 ## Manual Instrumentation / Polyfills
 
-Developers can attempt to wrap `postMessage` calls and `onmessage` handlers with their own timing logic (e.g., using `performance.now()`). However, this approach has several drawbacks:
+Developers can attempt to wrap `postMessage()` calls and `onmessage` handlers with their own timing logic (e.g., using `performance.now()`). However, this approach has several drawbacks:
 
   * It's challenging to intercept all messages, especially those from third-party libraries.
   * Accurately measuring internal browser operations like serialization, deserialization, and precise queue waiting time is not feasible from JavaScript.
@@ -806,7 +806,7 @@ Further discussion is needed to determine the minimum allowed value for this thr
     This issue highlights increasing latency in `postMessage` communication between Trello and embedded iframes, suggesting a need for better diagnostics around message delivery delays.
     
 - **Article:** [Is postMessage slow?](https://surma.dev/things/is-postmessage-slow/)  
-    This article explains how serialization and deserialization are major sources of delay in `postMessage` usage. While `SharedArrayBuffer` can, in theory, eliminate copying overhead by enabling shared memory, its real-world usage is limited due to strict security constraints and the added complexity of manual memory management and thread synchronization.
+    This article explains how serialization and deserialization are major sources of delay in `postMessage()` usage. While `SharedArrayBuffer` can, in theory, eliminate copying overhead by enabling shared memory, its real-world usage is limited due to strict security constraints and the added complexity of manual memory management and thread synchronization.
 
 # Acknowledgements
 Thank you to Abhishek Shanthkumar, Alex Russell, Andy Luhrs, Dave Meyers, Ethan Bernstein, Evan Stade, Jared Mitchell, Luis Pardo, Michal Mocny, Noam Helfman, Noam Rosenthal, Sam Fortiner, Samuele Carpineti, Steve Becker, Yoav Weiss, Yehor Lvivski for their valuable feedback and advice.
