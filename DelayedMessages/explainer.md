@@ -18,7 +18,7 @@ Author: [Joone Hur](https://github.com/joone)
     - [index.html](#indexhtml)
     - [main.js](#mainjs)
     - [worker.js](#workerjs)
-  - [Case 2: Message Queue Congestion](#case-2-message-queue-congestion)
+  - [Case 2: Task Queue Congestion](#case-2-message-queue-congestion)
     - [index.html](#indexhtml-1)
     - [main.js](#mainjs-1)
     - [worker.js](#workerjs-1)
@@ -83,15 +83,15 @@ Author: [Joone Hur](https://github.com/joone)
 
 Web applications frequently use the `postMessage` API for communication across different execution contexts, such as between windows, iframes, and web workers. However, message delays often occur when messages are queued but not processed promptly.
 
-These delays can degrade the user experience by making applications feel unresponsive. While developers can detect that a delay happened, identifying the specific cause—whether it's a busy thread, a congested message queue, or serialization/deserialization overhead—is challenging with current tools.
+These delays can degrade the user experience by making applications feel unresponsive. While developers can detect that a delay happened, identifying the specific cause—whether it's a busy thread, a congested task queue, or serialization/deserialization overhead—is challenging with current tools.
 
 The Delayed Message Timing API will provide developers with end-to-end timing metrics and details on blocking tasks, allowing them to pinpoint the root causes of these delays and improve application performance.
 
 # Goals
 
   * **Enable detection of congested contexts:** Allow websites to identify specific browser contexts (windows, tabs, iframes) or workers that are slow to process `MessageEvent`s. This covers [cross-document messaging](https://developer.mozilla.org/en-US/docs/Web/API/Window/postMessage), [cross-worker/document messaging](https://developer.mozilla.org/en-US/docs/Web/API/Worker/postMessage), [channel messaging](https://developer.mozilla.org/en-US/docs/Web/API/Channel_Messaging_API), and [broadcast channels](https://developer.mozilla.org/en-US/docs/Web/API/Broadcast_Channel_API).
-  * **Provide detailed end-to-end timing:** Offer comprehensive timing information for `postMessage` events, including message queue wait time, and the time taken for serialization and deserialization, to help pinpoint bottlenecks.
-  * **Identify blocking tasks:** Help developers find the specific scripts that prevent `postMessage` events from being handled promptly from the message queue.
+  * **Provide detailed end-to-end timing:** Offer comprehensive timing information for `postMessage` events, including task queue wait time, and the time taken for serialization and deserialization, to help pinpoint bottlenecks.
+  * **Identify blocking tasks:** Help developers find the specific scripts that prevent `postMessage` events from being handled promptly from the task queue.
 
 # Non-goals
 
@@ -103,19 +103,19 @@ This API does not aim to monitor or provide diagnostics for the following types 
 
 # Problems
 
-While developers expect messages sent via `postMessage` to web workers or iframes to be processed promptly, these tasks typically receive default priority in the browser's task scheduler(e.g. Chromium). As a result, `postMessage` communication can experience noticeable delays due to lower prioritization compared to user-visible tasks, often compounded by synchronous JavaScript blocking the target thread, a flood of messages overwhelming the message queue, or significant time spent processing the data being transferred, making the root cause challenging to pinpoint.
+While developers expect messages sent via `postMessage` to web workers or iframes to be processed promptly, these tasks typically receive default priority in the browser's task scheduler(e.g. Chromium). As a result, `postMessage` communication can experience noticeable delays due to lower prioritization compared to user-visible tasks, often compounded by synchronous JavaScript blocking the target thread, a flood of messages overwhelming the task queue, or significant time spent processing the data being transferred, making the root cause challenging to pinpoint.
 
 These problems can be broadly categorized into three areas:
 
 1.  **Thread being occupied:** The receiving thread is busy executing long-running tasks.
-2.  **Message queue becoming congested:** Too many messages are enqueued faster than they can be processed.
+2.  **Task queue becoming congested:** Too many messages are enqueued faster than they can be processed.
 3.  **Serialization/deserialization processes taking significant time:** The data being sent is large or complex, leading to overhead.
 
 The following sections will analyze each area with examples. All examples involve web workers, but similar situations can also occur between the main window and iframes, or between different windows.
 
 ## Case 1: Thread Occupation
 
-The following example code demonstrates how a long-running task on a worker thread can block subsequent messages in its message queue.
+The following example code demonstrates how a long-running task on a worker thread can block subsequent messages in its task queue.
 
 [Link to live demo](https://joone.github.io/web/explainers/delayed_messages/long_task/)
 
@@ -201,15 +201,15 @@ The following timeline illustrates message handling:
 
 In this timeline, messages \#1, \#2, and \#3 are handled promptly because their simulated tasks (50ms) complete within the 60ms interval at which messages are sent.
 
-However, message \#4's task is instructed to run for 120ms. While it's processing, message \#5 (sent 60ms after message \#4 was sent) arrives at the worker. Message \#5 must wait in the worker's message queue until message \#4 completes. This results in message \#5 experiencing a significant delay (approximately 60ms) before its handler can even begin.
+However, message \#4's task is instructed to run for 120ms. While it's processing, message \#5 (sent 60ms after message \#4 was sent) arrives at the worker. Message \#5 must wait in the worker's task queue until message \#4 completes. This results in message \#5 experiencing a significant delay (approximately 60ms) before its handler can even begin.
 
 Manually instrumenting code with `performance.now()` and `event.timeStamp` can help identify the root cause of delays as shown. However, in complex real-world applications, precisely identifying which long task caused a specific message delay, or distinguishing between delay caused by a preceding long task versus a message's own long handler, is very challenging without comprehensive, dedicated monitoring. This API aims to simplify such diagnoses.
 
-## Case 2: Message Queue Congestion
+## Case 2: Task Queue Congestion
 
 Another challenge is when the target context's task queue becomes overloaded with many short tasks. On the main thread, this often happens when the queue is saturated with high-priority tasks like user interaction and network handling, alongside internal system overhead tasks for navigation, loading, and rendering. In web workers, congestion occurs when a large number of messages are posted in a short period. In both cases, tasks or messages arrive faster than they can be processed, creating a backlog that delays subsequent messages, including those that may be time-sensitive. Although each individual task is not a long task, their combined accumulation causes queue congestion that effectively acts like a single disruptive long task.
 
- This example demonstrates how message queues in Web Workers can become congested when tasks take longer to process than the rate at which
+ This example demonstrates how task queues in Web Workers can become congested when tasks take longer to process than the rate at which
  messages are sent. It sends delete tasks every 30ms, then a read task, measuring queue wait times to show the congestion effect.
 
 [Link to live example](https://joone.github.io/web/explainers/delayed_messages/congested/)
@@ -222,10 +222,10 @@ Another challenge is when the target context's task queue becomes overloaded wit
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>An example of a message queue experiencing congestion</title>
+    <title>An example of a task queue experiencing congestion</title>
   </head>
   <body>
-    <h1>Message Queue Congestion Example</h1>
+    <h1>Task Queue Congestion Example</h1>
     <button onclick="sendTasksToWorker()">Start</button>
     <script src="main.js"></script>
   </body>
@@ -273,7 +273,7 @@ The Web Worker's `onmessage` handler processes `deleteMail`, and `checkMails` ta
 onmessage = async (event) => {
   const processingStart = event.timeStamp; // Time when worker starts processing this message
   const startTimeFromMain = event.data.startTime - performance.timeOrigin; // Convert to worker timeline
-  // Calculate message queue wait time by comparing when the message
+  // Calculate task queue wait time by comparing when the message
   // was sent (from main thread) vs when it started processing (in worker)
   const blockedDuration = processingStart - startTimeFromMain;
   const message = event.data;
@@ -324,7 +324,7 @@ async function deleteMail(message, blockedDuration) {
 The following timeline illustrates this congestion:
 ![](timeline_congested.png)
 
-In this scenario, the worker processes 10 `deleteMail` tasks, each taking 50ms, while being sent every 30ms. This disparity causes tasks to accumulate in the message queue. Consequently, later tasks, like the 11th task `checkMails`, spend a significant amount of time waiting in the queue (e.g., 245ms) even if their own processing time is short (e.g., 51.5ms).
+In this scenario, the worker processes 10 `deleteMail` tasks, each taking 50ms, while being sent every 30ms. This disparity causes tasks to accumulate in the task queue. Consequently, later tasks, like the 11th task `checkMails`, spend a significant amount of time waiting in the queue (e.g., 245ms) even if their own processing time is short (e.g., 51.5ms).
 
 While delays in background tasks like `deleteMail` might be acceptable, delays in user-initiated, high-priority tasks like `checkMails` severely impact user experience. It's important for developers to identify if a browser context or worker is congested and which tasks contribute most to this congestion.
 
@@ -436,17 +436,17 @@ onmessage = (event) => {
 ```
 As shown, serialization on the main thread (approx. 111.20 ms) occurs synchronously during the `postMessage` call, blocking other main thread work. Similarly, deserialization on the worker thread (approx. 454.40 ms) is a significant operation that blocks the worker's event loop during message processing, delaying the execution of the `onmessage` handler and any subsequent tasks.
 
-In this example, the worker log `blockedDuration: 111.10 ms` indicates the time elapsed from when the main thread initiated the `postMessage` (including its 111.20 ms serialization block) to when the worker's `onmessage` handler began execution. This suggests that the message queue wait time is nearly zero, and the delay is primarily caused by serialization on the sender side. However, the cost of data handling is difficult to estimate because the size of the message payload can vary depending on the scenario.
+In this example, the worker log `blockedDuration: 111.10 ms` indicates the time elapsed from when the main thread initiated the `postMessage` (including its 111.20 ms serialization block) to when the worker's `onmessage` handler began execution. This suggests that the task queue wait time is nearly zero, and the delay is primarily caused by serialization on the sender side. However, the cost of data handling is difficult to estimate because the size of the message payload can vary depending on the scenario.
 
 Another issus is that the timing of deserialization, which the [specification](https://html.spec.whatwg.org/multipage/web-messaging.html#dom-window-postmessage-options-dev) suggests should occur before the message event, can vary across browsers. For example, browsers like Chromium may delay this process until the message data is actually accessed for the first time. This inconsistency, combined with a busy event loop that makes it difficult to distinguish serialization, actual queueing, deserialization, and task execution delays even with manual instrumentation, further underscores the need for an API to expose this timing information.
 
 ### Summary of Problems
 
-Message delays frequently occur and can degrade user experience. While existing tools can detect delays, pinpointing the exact cause is difficult. Delays often stem from the receiver's thread being busy with long tasks, message queue congestion, or serialization/deserialization overhead. Accurately measuring internal message queue wait time is especially challenging with manual instrumentation. A dedicated API is needed to precisely measure, attribute, and identify these specific sources of delay.
+Message delays frequently occur and can degrade user experience. While existing tools can detect delays, pinpointing the exact cause is difficult. Delays often stem from the receiver's thread being busy with long tasks, task queue congestion, or serialization/deserialization overhead. Accurately measuring internal task queue wait time is especially challenging with manual instrumentation. A dedicated API is needed to precisely measure, attribute, and identify these specific sources of delay.
 
 # Proposal: Introducing the Delayed Message Timing API
 
-The Delayed Message Timing API introduces the `PerformanceDelayedMessageTiming` interface, delivered via the PerformanceObserver API. This interface allows developers to identify browser contexts or workers where `postMessage` events are significantly delayed in the message queue. It also provides detailed breakdowns of the event's lifecycle, including information about the invoker, receiver, and blocking scripts.
+The Delayed Message Timing API introduces the `PerformanceDelayedMessageTiming` interface, delivered via the PerformanceObserver API. This interface allows developers to identify browser contexts or workers where `postMessage` events are significantly delayed in the task queue. It also provides detailed breakdowns of the event's lifecycle, including information about the invoker, receiver, and blocking scripts.
 
 This new interface relies on two supporting interfaces:
 
@@ -467,7 +467,7 @@ The following diagram illustrates the key timestamps:
   * **`processingStart`**: The timestamp when the receiving context begins processing the message (i.e., when its `onmessage` handler is about to be executed).
   * **`processingEnd`**: The timestamp when the message processing (i.e., the `onmessage` handler) is completed in the receiving context.
   * **`duration`**: The total time from `startTime` to `processingEnd`.
-  * **`blockedDuration`**: The time the message spent waiting in the receiver's message queue after `sentTime` but before `processingStart`.
+  * **`blockedDuration`**: The time the message spent waiting in the receiver's task queue after `sentTime` but before `processingStart`.
 
 This interface is available in both browser contexts and web workers, providing insights into `postMessage` timings. For round-trip timing analysis, developers would need to correlate entries from both the sender and receiver contexts (e.g., by sending performance entries back or using a unique identifier).
 
@@ -501,7 +501,7 @@ Returns a `DOMHighResTimeStamp` representing the total time from `startTime` to 
 
 #### `PerformanceDelayedMessageTiming.sentTime`
 
-Returns a `DOMHighResTimeStamp` representing the time when the message was added to the message queue of the receiving browser context or worker.
+Returns a `DOMHighResTimeStamp` representing the time when the message was added to the task queue of the receiving browser context or worker.
 
 #### `PerformanceDelayedMessageTiming.processingStart`
 
@@ -513,7 +513,7 @@ Returns a `DOMHighResTimeStamp` representing the time when the event dispatch en
 
 #### `PerformanceDelayedMessageTiming.blockedDuration`
 
-Returns a `DOMHighResTimeStamp` representing the duration a dispatched `postMessage` waited in the message queue of the receiving context *after* `sentTime` and *before* `processingStart`. It is calculated as `processingStart - sentTime`.
+Returns a `DOMHighResTimeStamp` representing the duration a dispatched `postMessage` waited in the task queue of the receiving context *after* `sentTime` and *before* `processingStart`. It is calculated as `processingStart - sentTime`.
 
 #### `PerformanceDelayedMessageTiming.serialization`
 
