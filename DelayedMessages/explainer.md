@@ -28,7 +28,7 @@ Author: [Joone Hur](https://github.com/joone)
     - [worker.js](#workerjs-2)
     - [Console logs](#console-logs)
     - [Summary of Problems](#summary-of-problems)
-- [Proposal: Introducing the Delayed Messages API](#proposal-introducing-the-delayed-messages-api)
+- [Proposal: Introducing the Delayed Message Timing API](#proposal-introducing-the-delayed-messages-api)
   - [`PerformanceDelayedMessageTiming` Interface](#performancedelayedmessagetiming-interface)
     - [`postMessage` Timestamps and Durations:](#postmessage-timestamps-and-durations)
     - [Instance Properties](#instance-properties)
@@ -85,7 +85,7 @@ Web applications frequently use the `postMessage` API for communication across d
 
 These delays can degrade the user experience by making applications feel unresponsive. While developers can detect that a delay happened, identifying the specific cause—whether it's a busy thread, a congested message queue, or serialization/deserialization overhead—is challenging with current tools.
 
-The Delayed Messages API will provide developers with end-to-end timing metrics and details on blocking tasks, allowing them to pinpoint the root causes of these delays and improve application performance.
+The Delayed Message Timing API will provide developers with end-to-end timing metrics and details on blocking tasks, allowing them to pinpoint the root causes of these delays and improve application performance.
 
 # Goals
 
@@ -444,9 +444,9 @@ Another issus is that the timing of deserialization, which the [specification](h
 
 Message delays frequently occur and can degrade user experience. While existing tools can detect delays, pinpointing the exact cause is difficult. Delays often stem from the receiver's thread being busy with long tasks, message queue congestion, or serialization/deserialization overhead. Accurately measuring internal message queue wait time is especially challenging with manual instrumentation. A dedicated API is needed to precisely measure, attribute, and identify these specific sources of delay.
 
-# Proposal: Introducing the Delayed Messages API
+# Proposal: Introducing the Delayed Message Timing API
 
-The Delayed Messages API introduces the `PerformanceDelayedMessageTiming` interface, delivered via the PerformanceObserver API. This interface allows developers to identify browser contexts or workers where `postMessage` events are significantly delayed in the message queue. It also provides detailed breakdowns of the event's lifecycle, including information about the invoker, receiver, and blocking scripts.
+The Delayed Message Timing API introduces the `PerformanceDelayedMessageTiming` interface, delivered via the PerformanceObserver API. This interface allows developers to identify browser contexts or workers where `postMessage` events are significantly delayed in the message queue. It also provides detailed breakdowns of the event's lifecycle, including information about the invoker, receiver, and blocking scripts.
 
 This new interface relies on two supporting interfaces:
 
