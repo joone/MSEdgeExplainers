@@ -664,6 +664,9 @@ By examining `blockedDuration` and the handler execution time (`processingEnd - 
       "blockedDuration": 0,
       "serializeDuration": 0,
       "deserializeDuration": 0,
+      "taskCount": 13,
+      "scriptTaskCount": 1,
+      "totalScriptDuration": 0,
       "scripts": [],
       "invoker": {
           "name": "invoker",
@@ -705,6 +708,9 @@ By examining `blockedDuration` and the handler execution time (`processingEnd - 
       "blockedDuration": 60,
       "serializeDuration": 0,
       "deserializeDuration": 0,
+      "taskCount": 27,
+      "scriptTaskCount": 2,
+      "totalScriptDuration": 121,
       "scripts": [
           {
               "name": "script",
